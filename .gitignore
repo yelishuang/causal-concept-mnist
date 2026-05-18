@@ -1,0 +1,43 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+ENV/
+
+# ===== 项目产物（体积大 / 可由代码重新生成）=====
+code/.venv/
+code/checkpoints/
+code/data/
+code/cf_samples_*/
+
+# ===== 涉及版权 / 不公开的文件 =====
+CLAUDE.md
+*.pdf
+markdown/paper.html
+
+# ===== 中间产物 / 学习笔记（不入库）=====
+# 注意：仅匹配仓库根目录，code/docs/ 不受影响
+/HTML/
+/docs/
+
+# ===== IDE / 系统 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
