@@ -44,9 +44,9 @@
 
 $$c_n[k] = \sigma\left(\beta_k^T \, \mathrm{vec}(\Phi_1(\mathbf{x}_n))\right) + \epsilon$$
 
-其中 $\sigma(\cdot)$ 是 sigmoid 函数。对于卷积神经网络，$\Phi_1(\mathbf{x}) \in \mathbb{R}^{w \times h \times l}$ 是某个卷积层的输出激活，其宽度为 $w$、高度为 $h$、通道数为 $l$。我们对 $\Phi_1$ 实验了两种向量化方式。第一种，我们将 $\Phi_1(\mathbf{x})$ 展平为 $whl$ 维向量。第二种，我们沿着宽度和高度方向应用最大池化进行空间聚合，得到 $l$ 维向量。与使用线性回归的 TCAV [12] 不同，我们使用 lasso 回归以实现稀疏特征选择，并最小化以下损失函数：
+其中 $\sigma(\cdot)$ 是 sigmoid 函数。对于卷积神经网络，$\Phi_1(\mathbf{x}) \in \mathbb{R}^{w \times h \times l}$ 是某个卷积层的输出激活，其宽度为 $w$、高度为 $h$、通道数为 $l$。我们对 $\Phi_1$ 实验了两种向量化方式。第一种，我们将 $\Phi_1(\mathbf{x})$ 展平为 $whl$ 维向量。第二种，我们沿着宽度和高度方向应用最大池化进行空间聚合，得到 $l$ 维向量。与使用线性回归的 TCAV [12] 不同，我们使用 lasso 回归以实现稀疏特征选择，并最小化以下损失函数（公式 1）：
 
-$$\min_{\beta_k} \sum_{\mathbf{x}_n \in \mathcal{X}_k} \ell\left(h_{\beta_k}(\mathbf{x}), c_n[k]\right) + \lambda \|\beta_k\|_1 \tag{1}$$
+$$\min_{\beta_k} \sum_{\mathbf{x}_n \in \mathcal{X}_k} \ell\left(h_{\beta_k}(\mathbf{x}), c_n[k]\right) + \lambda \|\beta_k\|_1$$
 
 其中 $\ell(\cdot, \cdot)$ 是交叉熵损失，$h_{\beta_k}(\mathbf{x}) = \sigma\left(\beta_k^T \, \mathrm{vec}(\Phi_1(\mathbf{x}_n))\right)$，$\lambda$ 是正则化参数。我们采用 10 折嵌套交叉验证（10-fold nested-cross validation）来寻找误差最小的 $\lambda$。概念向量 $\beta_k$ 中的非零元素构成与第 $k$ 个概念最相关的隐藏单元集合 $\mathcal{V}_k$。
 
@@ -63,38 +63,40 @@ $$\min_{\beta_k} \sum_{\mathbf{x}_n \in \mathcal{X}_k} \ell\left(h_{\beta_k}(\ma
 
 3. **间接效应（Indirect effect, IE）**：IE 是反事实扰动中由一组中介变量传导的效应。它刻画的是输入图像被扰动后，通过给定概念间接地导致分类决策发生的变化。
 
-遵循文献 [18,21] 中的潜在结果框架（potential outcome framework），我们将平均处理效应（average treatment effect, ATE）定义为事实分类结果与反事实分类结果之间的比例差：
+遵循文献 [18,21] 中的潜在结果框架（potential outcome framework），我们将平均处理效应（average treatment effect, ATE）定义为事实分类结果与反事实分类结果之间的比例差（公式 2）：
 
 $$
-\mathrm{ATE} = \mathcal{E}\!\left[\frac{f(\mathbf{x}')}{f(\mathbf{x})} - 1\right]. \tag{2}
+\mathrm{ATE} = \mathcal{E}\!\left[\frac{f(\mathbf{x}')}{f(\mathbf{x})} - 1\right].
 $$
 
 为了通过中介变量进行因果推断，我们借用 Pearl 提出的自然直接效应与间接效应（natural direct and indirect effects）的定义 [16]（参见图 2）。我们将概念单元集合 $\mathcal{V}_k$ 视为中介变量，代表第 $k$ 个概念。我们把潜在表示 $\Phi_1(\mathbf{x})$ 分解为概念单元 $\mathcal{V}_k(\mathbf{x})$ 的响应与其余隐藏单元 $\bar{\mathcal{V}}_k(\mathbf{x})$ 的响应的拼接，即 $\Phi_1(\mathbf{x}) = \big[\mathcal{V}_k(\mathbf{x}), \bar{\mathcal{V}}_k(\mathbf{x})\big]$。于是分类结果可重写为 $f(\mathbf{x}) = \Phi_2\big(\Phi_1(\mathbf{x})\big) = \Phi_2\big([\mathcal{V}_k(\mathbf{x}), \bar{\mathcal{V}}_k(\mathbf{x})]\big)$。为了把直接效应与间接效应解耦，我们在已学网络的单元层面上使用 do-操作（do-operation）的概念。具体地，我们用 $do\big(\mathcal{V}_k(\mathbf{x})\big)$ 来表示将概念单元的取值设为以原始图像作为输入时所得到的值。通过对网络进行干预并设置概念单元的值，我们可以在保持中介变量（即 $\mathcal{V}_k$）固定为扰动前的值的同时，把直接效应计算为事实分类结果与反事实分类结果之间的比例差：
 
-$$
-\mathrm{DE} = \mathcal{E}\!\left[\frac{\Phi_2\big([\,do(\mathcal{V}_k(\mathbf{x})),\,\bar{\mathcal{V}}_k(\mathbf{x}')]\big)}{\Phi_2\big([\mathcal{V}_k(\mathbf{x}),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)} - 1\right]. \tag{3}
-$$
-
-我们把间接效应计算为：在保持其他一切固定为原值的情况下，将中介变量从原值改为反事实下取值时，分类输出的期望变化：
+即得到直接效应（公式 3）：
 
 $$
-\mathrm{IE} = \mathcal{E}\!\left[\frac{\Phi_2\big([\,do(\mathcal{V}_k(\mathbf{x}')),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)}{\Phi_2\big([\mathcal{V}_k(\mathbf{x}),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)} - 1\right]. \tag{4}
+\mathrm{DE} = \mathcal{E}\!\left[\frac{\Phi_2\big([\,do(\mathcal{V}_k(\mathbf{x})),\,\bar{\mathcal{V}}_k(\mathbf{x}')]\big)}{\Phi_2\big([\mathcal{V}_k(\mathbf{x}),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)} - 1\right].
+$$
+
+我们把间接效应计算为：在保持其他一切固定为原值的情况下，将中介变量从原值改为反事实下取值时，分类输出的期望变化（公式 4）：
+
+$$
+\mathrm{IE} = \mathcal{E}\!\left[\frac{\Phi_2\big([\,do(\mathcal{V}_k(\mathbf{x}')),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)}{\Phi_2\big([\mathcal{V}_k(\mathbf{x}),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)} - 1\right].
 $$
 
 如果扰动对中介变量没有影响，那么因果间接效应就为零。最后，我们以一个概念所对应的间接效应作为该概念对分类决策相关性的度量。
 
 ### 2.3 替代解释函数（Surrogate explanation function）
 
-我们的目标是学习一个替代函数（surrogate function）$g(\cdot)$，使其使用一个可解释且简单直观的函数来再现函数 $f(\cdot)$ 的输出。我们把 $g(\cdot)$ 形式化为一棵决策树（decision tree），因为许多临床决策过程都遵循基于规则的模式。我们利用 $k$ 个概念回归函数 $h_{\beta_k}(\cdot)$ 的输出来概括函数 $f(\cdot)$ 的内部状态，如下所示：
+我们的目标是学习一个替代函数（surrogate function）$g(\cdot)$，使其使用一个可解释且简单直观的函数来再现函数 $f(\cdot)$ 的输出。我们把 $g(\cdot)$ 形式化为一棵决策树（decision tree），因为许多临床决策过程都遵循基于规则的模式。我们利用 $k$ 个概念回归函数 $h_{\beta_k}(\cdot)$ 的输出来概括函数 $f(\cdot)$ 的内部状态，如下所示（公式 5）：
 
 $$
-\mathbf{w}_n = \Big[\,\mathrm{logit}\big(h_{\beta_1}(\mathbf{x}_n)\big),\;\mathrm{logit}\big(h_{\beta_2}(\mathbf{x}_n)\big),\;\cdots\Big]. \tag{5}
+\mathbf{w}_n = \Big[\,\mathrm{logit}\big(h_{\beta_1}(\mathbf{x}_n)\big),\;\mathrm{logit}\big(h_{\beta_2}(\mathbf{x}_n)\big),\;\cdots\Big].
 $$
 
-接着，我们拟合一棵决策树函数 $g(\cdot)$，使其模拟函数 $f(\cdot)$ 的输出：
+接着，我们拟合一棵决策树函数 $g(\cdot)$，使其模拟函数 $f(\cdot)$ 的输出（公式 6）：
 
 $$
-g^{\ast} = \arg\min_{g}\sum_{n}\mathcal{L}\big(g(\mathbf{w}_n),\,f(\mathbf{x}_n)\big), \tag{6}
+g^{\ast} = \arg\min_{g}\sum_{n}\mathcal{L}\big(g(\mathbf{w}_n),\,f(\mathbf{x}_n)\big),
 $$
 
 其中 $\mathcal{L}$ 是基于最小化熵以使每次分裂获得最大信息增益的分裂准则。
