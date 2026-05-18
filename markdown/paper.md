@@ -69,9 +69,7 @@ $$
 \mathrm{ATE} = \mathcal{E}\!\left[\frac{f(\mathbf{x}')}{f(\mathbf{x})} - 1\right].
 $$
 
-为了通过中介变量进行因果推断，我们借用 Pearl 提出的自然直接效应与间接效应（natural direct and indirect effects）的定义 [16]（参见图 2）。我们将概念单元集合 $\mathcal{V}_k$ 视为中介变量，代表第 $k$ 个概念。我们把潜在表示 $\Phi_1(\mathbf{x})$ 分解为概念单元 $\mathcal{V}_k(\mathbf{x})$ 的响应与其余隐藏单元 $\bar{\mathcal{V}}_k(\mathbf{x})$ 的响应的拼接，即 $\Phi_1(\mathbf{x}) = \big[\mathcal{V}_k(\mathbf{x}), \bar{\mathcal{V}}_k(\mathbf{x})\big]$。于是分类结果可重写为 $f(\mathbf{x}) = \Phi_2\big(\Phi_1(\mathbf{x})\big) = \Phi_2\big([\mathcal{V}_k(\mathbf{x}), \bar{\mathcal{V}}_k(\mathbf{x})]\big)$。为了把直接效应与间接效应解耦，我们在已学网络的单元层面上使用 do-操作（do-operation）的概念。具体地，我们用 $do\big(\mathcal{V}_k(\mathbf{x})\big)$ 来表示将概念单元的取值设为以原始图像作为输入时所得到的值。通过对网络进行干预并设置概念单元的值，我们可以在保持中介变量（即 $\mathcal{V}_k$）固定为扰动前的值的同时，把直接效应计算为事实分类结果与反事实分类结果之间的比例差：
-
-即得到直接效应（公式 3）：
+为了通过中介变量进行因果推断，我们借用 Pearl 提出的自然直接效应与间接效应（natural direct and indirect effects）的定义 [16]（参见图 2）。我们将概念单元集合 $\mathcal{V}_k$ 视为中介变量，代表第 $k$ 个概念。我们把潜在表示 $\Phi_1(\mathbf{x})$ 分解为概念单元 $\mathcal{V}_k(\mathbf{x})$ 的响应与其余隐藏单元 $\bar{\mathcal{V}}_k(\mathbf{x})$ 的响应的拼接，即 $\Phi_1(\mathbf{x}) = \big[\mathcal{V}_k(\mathbf{x}), \bar{\mathcal{V}}_k(\mathbf{x})\big]$。于是分类结果可重写为 $f(\mathbf{x}) = \Phi_2\big(\Phi_1(\mathbf{x})\big) = \Phi_2\big([\mathcal{V}_k(\mathbf{x}), \bar{\mathcal{V}}_k(\mathbf{x})]\big)$。为了把直接效应与间接效应解耦，我们在已学网络的单元层面上使用 do-操作（do-operation）的概念。具体地，我们用 $do\big(\mathcal{V}_k(\mathbf{x})\big)$ 来表示将概念单元的取值设为以原始图像作为输入时所得到的值。通过对网络进行干预并设置概念单元的值，我们可以在保持中介变量（即 $\mathcal{V}_k$）固定为扰动前的值的同时，把直接效应计算为事实分类结果与反事实分类结果之间的比例差（公式 3）：
 
 $$
 \mathrm{DE} = \mathcal{E}\!\left[\frac{\Phi_2\big([\,do(\mathcal{V}_k(\mathbf{x})),\,\bar{\mathcal{V}}_k(\mathbf{x}')]\big)}{\Phi_2\big([\mathcal{V}_k(\mathbf{x}),\,\bar{\mathcal{V}}_k(\mathbf{x})]\big)} - 1\right].
